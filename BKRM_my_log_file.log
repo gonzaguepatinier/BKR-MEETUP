@@ -1,0 +1,65 @@
+[2024-01-27 10:48:16,836] DEBUG    BKRM: -----
+[2024-01-27 10:48:16,837] DEBUG    BKRM: Start
+[2024-01-27 10:48:16,837] DEBUG    Site: Fetching Credentials
+[2024-01-27 10:49:18,841] DEBUG    BKRM: -----
+[2024-01-27 10:49:18,841] DEBUG    BKRM: Start
+[2024-01-27 10:49:18,841] DEBUG    Site: Fetching Credentials
+[2024-01-27 10:49:18,842] DEBUG    Site: Username: gonzague.patinier@gmail.com  
+[2024-01-27 10:49:18,842] DEBUG    Site: Password: M#in1day
+[2024-01-27 10:49:26,025] DEBUG    Site: Login Page
+[2024-01-27 10:49:26,424] DEBUG    Site: Insert Username
+[2024-01-27 10:49:29,940] DEBUG    Site: Insert Password
+[2024-01-27 10:49:30,254] DEBUG    Site: Click Submit
+[2024-01-27 13:21:49,542] DEBUG    BKRM: -----
+[2024-01-27 13:21:49,544] DEBUG    BKRM: Start
+[2024-01-27 13:21:49,544] DEBUG    Site: Fetching Credentials
+[2024-01-27 13:21:49,546] DEBUG    Site: Username: gonzague.patinier@gmail.com  
+[2024-01-27 13:21:49,546] DEBUG    Site: Password: M#in1day
+[2024-01-27 13:21:56,360] DEBUG    Site: Login Page
+[2024-01-27 13:21:59,506] DEBUG    Site: Insert Username
+[2024-01-27 13:22:00,101] DEBUG    Site: Insert Password
+[2024-01-27 13:22:00,771] DEBUG    Site: Click Submit
+[2024-01-27 13:22:13,835] DEBUG    JDB: Extract Data from current page
+[2024-01-27 13:22:13,836] DEBUG    JDB: Extract URLs
+[2024-01-27 13:22:16,861] DEBUG    JDB: Completed
+[2024-01-27 13:22:16,861] DEBUG    JDB: -----
+[2024-01-27 13:22:16,861] DEBUG    JDB: END
+[2024-01-27 13:25:40,110] DEBUG    BKRM: -----
+[2024-01-27 13:25:40,110] DEBUG    BKRM: Start
+[2024-01-27 13:25:40,111] DEBUG    Site: Fetching Credentials
+[2024-01-27 13:25:40,111] DEBUG    Site: Username: gonzague.patinier@gmail.com  
+[2024-01-27 13:25:40,111] DEBUG    Site: Password: M#in1day
+[2024-01-27 13:25:45,730] DEBUG    Site: Login Page
+[2024-01-27 13:25:47,677] DEBUG    Site: Insert Username
+[2024-01-27 13:25:48,559] DEBUG    Site: Insert Password
+[2024-01-27 13:25:48,736] DEBUG    Site: Click Submit
+[2024-01-27 13:25:52,612] DEBUG    JDB: Extract Data from current page
+[2024-01-27 13:25:52,612] DEBUG    JDB: Extract URLs
+[2024-01-27 13:27:32,025] DEBUG    BKRM: -----
+[2024-01-27 13:27:32,026] DEBUG    BKRM: Start
+[2024-01-27 13:27:32,026] DEBUG    Site: Fetching Credentials
+[2024-01-27 13:27:32,026] DEBUG    Site: Username: gonzague.patinier@gmail.com  
+[2024-01-27 13:27:32,027] DEBUG    Site: Password: M#in1day
+[2024-01-27 13:27:36,726] DEBUG    Site: Login Page
+[2024-01-27 13:27:40,092] DEBUG    Site: Insert Username
+[2024-01-27 13:27:41,240] DEBUG    Site: Insert Password
+[2024-01-27 13:27:41,411] DEBUG    Site: Click Submit
+[2024-01-27 13:27:46,002] DEBUG    JDB: Extract Data from current page
+[2024-01-27 13:27:46,003] DEBUG    JDB: Extract URLs
+[2024-01-27 13:28:02,275] DEBUG    JDB: Completed
+[2024-01-27 13:28:02,275] DEBUG    JDB: -----
+[2024-01-27 13:28:02,275] DEBUG    JDB: END
+[2024-01-27 13:28:48,328] DEBUG    BKRM: -----
+[2024-01-27 13:28:48,328] DEBUG    BKRM: Start
+[2024-01-27 13:28:48,328] DEBUG    Site: Fetching Credentials
+[2024-01-27 13:28:48,328] DEBUG    Site: Username: gonzague.patinier@gmail.com  
+[2024-01-27 13:28:48,328] DEBUG    Site: Password: M#in1day
+[2024-01-27 13:28:51,277] DEBUG    Site: Login Page
+[2024-01-27 13:28:55,012] DEBUG    Site: Insert Username
+[2024-01-27 13:28:55,502] DEBUG    Site: Insert Password
+[2024-01-27 13:28:55,688] DEBUG    Site: Click Submit
+[2024-01-27 13:29:07,263] DEBUG    JDB: Extract Data from current page
+[2024-01-27 13:29:07,263] DEBUG    JDB: Extract URLs
+[2024-01-27 13:29:23,189] DEBUG    JDB: Completed
+[2024-01-27 13:29:23,189] DEBUG    JDB: -----
+[2024-01-27 13:29:23,189] DEBUG    JDB: END

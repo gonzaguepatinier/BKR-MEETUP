@@ -148,9 +148,22 @@ def Site_Extract_Cal_Event(local_webdriver: webdriver, url_site: str):
     # local_webdriver.get(url)
     
     local_webdriver.get(url_site)
+    
+
 
     logger.debug('JDB: Extract Data from current page')
     logger.debug('JDB: Extract URLs')
+
+    # xpath_event = "//div[@id='ep-*']"
+    xpath_event = '//*[starts-with(@id, "ep-")]'
+
+    div_elements = local_webdriver.find_elements("xpath",xpath_event)                                                                                                                        
+
+    for element in div_elements: 
+
+        # logger.debug('JDB: Number ['+str(i) + "]")
+        print (element.text)
+
 
     scroll_to_bottom(local_webdriver)
     scroll_to_bottom(local_webdriver)

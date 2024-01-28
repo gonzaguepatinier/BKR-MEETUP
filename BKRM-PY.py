@@ -17,6 +17,7 @@ from selenium.common.exceptions import NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager 
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.remote.webelement import WebElement
 import os
 import logging
 import json
@@ -161,6 +162,14 @@ def Site_Extract_Event_Details(local_webdriver: webdriver, url_event: str) -> st
 
     return (run_organizer_text)
 
+def print_element_attributes(element: WebElement):
+    all_attributes = element.get_property("attributes")
+
+    # Iterate through the dictionary and print each attribute and its value
+    for attribute in all_attributes:
+        attribute_name = attribute["name"]
+        attribute_value = element.get_attribute(attribute_name)
+        print(f"{attribute_name}: {attribute_value}")
 
 def Site_Extract_Cal_Event(local_webdriver: webdriver, local_event_webdriver: webdriver, url_site: str, iteration: int):
 
@@ -171,58 +180,59 @@ def Site_Extract_Cal_Event(local_webdriver: webdriver, local_event_webdriver: we
     logger.debug('BKRM: Extract Data from current page')
     logger.debug('BKRM: Extract URLs')
 
-    # xpath_event = "//div[@id='ep-*']"
-    xpath_event = '//*[starts-with(@id, "ep-")]'
+    # Sroll the infinite loop a few times
 
-    for i in range(1,iteration):
+    for index in range(1,iteration):
+        logger.debug('BKRM: scrolling [' + str(index) + ']')
         scroll_to_bottom(local_webdriver)
-    
-    # scroll_to_bottom(local_webdriver)
-    
+
+    # Search for WebElement for each event
+
+    xpath_event = '//*[starts-with(@id, "ep-")]' 
     div_elements = local_webdriver.find_elements("xpath",xpath_event)                                                                                                                        
 
     element_index = 1
 
     for element in div_elements: 
 
-        # logger.debug('JDB: Number ['+str(i) + "]")
         element_index_text = "{:02d}".format(element_index)
-        print("ELEMENT [" + element_index_text + "] : ")
-        # print (element.text)
+        logger.debug("ELEMENT [" + element_index_text + "] : ")
 
-        all_attributes = element.get_property("attributes")
-
-        # Iterate through the dictionary and print each attribute and its value
-        for attribute in all_attributes:
-            attribute_name = attribute["name"]
-            attribute_value = element.get_attribute(attribute_name)
-            print(f"{attribute_name}: {attribute_value}")
+        # Search for time of event
 
         xpath_time = ".//time"
         run_time = element.find_element("xpath",xpath_time) 
-        print ("Time: " + run_time.text)
+        logger.debug("BKRM: " + "Time: " + run_time.text)
+
+        # Search for URL of full event description
+        # Used to extract organiser
 
         xpath_meetup_url_link = ".//a[@class='flex h-full flex-col justify-between space-y-5 outline-offset-8 hover:no-underline']"
         run_meetup_url_link = element.find_element("xpath",xpath_meetup_url_link)
         run_meetup_url_link_text = run_meetup_url_link.get_attribute("href")
-        print ("Meetup url link: " + run_meetup_url_link_text)
+        logger.debug("BKRM: " + "Meetup url link: " + run_meetup_url_link_text)
 
+        # Search for Event Title
 
-        # xpath_title = ".//span[starts-with(@class, 'ds-font-title-3']"
         xpath_title = './/span[@class="ds-font-title-3 block break-words leading-7 utils_cardTitle__lbnC_ text-gray6"]'
         run_title = element.find_element("xpath",xpath_title)
-        print ("Title: " + run_title.text)
-
+        logger.debug("BKRM: " + "Title: " + run_title.text)
         
+        # Search for attendee number
+        # in some event, no attendee is written
 
         xpath_attendee_number = ".//span[@class='hidden sm:inline']"
         try:
             run_attendee_number = element.find_element("xpath",xpath_attendee_number)
-            print ("Attendee Number: " + run_attendee_number.text)
-            run_attendee_number_text= run_attendee_number.text
+            run_attendee_number_text_temp= run_attendee_number.text
+            an_text = run_attendee_number_text_temp.split()
+            run_attendee_number_text = an_text[0] 
+            logger.debug("BKRM: " + "Attendee Number: " + run_attendee_number.text)
+
         except NoSuchElementException:
             run_attendee_number_text= "0"
-            print ("Attendee Number: None")
+            
+        # Search for organizer name from details event description
 
         run_organizer = Site_Extract_Event_Details(local_event_webdriver, run_meetup_url_link_text) 
 
@@ -263,44 +273,27 @@ def main():
     
     Username, Password = Site_Credentials(BKRM_CREDENTIALS_FILE)
 
-    driver_main = webdriver.Chrome(service=Service(ChromeDriverManager().install())) 
-    driver_second = webdriver.Chrome(service=Service(ChromeDriverManager().install())) 
+    chrome_options = webdriver.ChromeOptions()
+
+    # Set options as needed
+    chrome_options.add_argument('--headless')  # Run Chrome in headless mode (without GUI)
+    chrome_options.add_argument('--disable-gpu')  # Disable GPU acceleration in headless mode
+
+    # Specify the path to the ChromeDriver executable using ChromeDriverManager
+    # driver = webdriver.Chrome(service=webdriver.ChromeService(executable_path=ChromeDriverManager().install()), options=chrome_options)
+
+    driver_main = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=chrome_options) 
+    driver_second = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=chrome_options) 
 
     url_past = "https://www.meetup.com/bangkok-runners/events/?type=past" 
     Site_login(driver_main, BKRM_LOGIN_PAGE,Username,Password)
     Site_login(driver_second, BKRM_LOGIN_PAGE,Username,Password)
 
     driver_main.get(url_past)
-    # scroll_to_bottom(driver)
 
-    # EVENT_URL_TEST = "https://www.meetup.com/Bangkok-Runners/events/298203992/"
-
-    # Site_Extract_Event_Details(driver, EVENT_URL_TEST)
-
-    # EVENT_URL_TEST = "https://www.meetup.com/bangkok-runners/events/296007056/"
-
-    # Site_Extract_Event_Details(driver, EVENT_URL_TEST)
-
-    iteration = 10
+    iteration = 50
 
     Site_Extract_Cal_Event(driver_main,driver_second, url_past, iteration)
-
-
-
-    # scroll_to_bottom(driver)
-    # scroll_to_bottom(driver)
-    # scroll_to_bottom(driver)
-    # Site_Extract_Cal_Event(driver,url_past)
-
-    # driver.get("https://th.jobsdb.com/th/en/Search/FindJobs") 
-    # driver.get("https://th.jobsdb.com/th/search-jobs/devops/1") o
-
-
-    # SITE_URL_EXTRACT = "https://www.meetup.com/bangkok-runners/events/calendar/"
-    # M_Year = 2024
-    # M_Month = 1
-    # Site_Extract_Cal_Event(driver, SITE_URL_EXTRACT, M_Year, M_Month )
-
 
 
     pd.set_option('display.max_columns', None)
@@ -314,9 +307,9 @@ def main():
     df.to_sql(BKRM_TABLE_NAME, conn, if_exists='append', index=False)
     pd.read_sql('select * from ' + BKRM_TABLE_NAME, conn)
 
-    logger.debug('JDB: Completed')
-    logger.debug('JDB: -----')
-    logger.debug('JDB: END')
+    logger.debug('BKRM: Completed')
+    logger.debug('BKRM: -----')
+    logger.debug('BKRM: END')
 
     
 if __name__ == "__main__":

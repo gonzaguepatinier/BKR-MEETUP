@@ -39,13 +39,12 @@ BKRM_SITE = "BKRM"
 
 df = pd.DataFrame(
             [],
-            columns=['job_site',
-                     'job_id',
-                     'job_title',
-                     'job_company_name',
-                     'job_location',
-                     'job_date_posted',
-                     'job_url'] )
+            columns=['event_site',
+                     'event_date',
+                     'event_title',
+                     'event_organizer',
+                     'event_attendee_number',
+                     'event_url'] )
 
 
 
@@ -137,27 +136,45 @@ def Site_login(local_webdriver: webdriver, site_login_page: str, Username: str, 
     # End of Function
 
 
-# def Site_Extract_Cal_Event(local_webdriver: webdriver, url_site: str, Year: int, Month: int):
-def Site_Extract_Cal_Event(local_webdriver: webdriver, url_site: str):
+def Site_Extract_Event_Details(local_webdriver: webdriver, url_event: str) -> str:
 
     global df
     
-    # Month_text = result_string = "{:02d}".format(Month)
-    # url = url_site + str(Year) + "-" + Month_text + "/"
+    local_webdriver.get(url_event)
+    
+    logger.debug('BKRM: Extract Data from event')
 
-    # local_webdriver.get(url)
+    xpath_organizer = "//a[@data-event-label='hosted-by']"
+    run_organizer_element= local_webdriver.find_element("xpath",xpath_organizer) 
+
+    run_organizer_intermediate= run_organizer_element.get_attribute("aria-label")
+    print(run_organizer_intermediate)
+
+    if run_organizer_intermediate is not None:
+        run_organizer_text = run_organizer_intermediate[10:]
+    else:
+       run_organizer_text = "No Organizer"
+
+    print ("Organizer: " + run_organizer_text)
+
+    logger.debug('Event Organizer: ' + run_organizer_text)
+
+    return (run_organizer_text)
+
+
+def Site_Extract_Cal_Event(local_webdriver: webdriver, local_event_webdriver: webdriver, url_site: str, iteration: int):
+
+    global df
     
     local_webdriver.get(url_site)
     
-
-
-    logger.debug('JDB: Extract Data from current page')
-    logger.debug('JDB: Extract URLs')
+    logger.debug('BKRM: Extract Data from current page')
+    logger.debug('BKRM: Extract URLs')
 
     # xpath_event = "//div[@id='ep-*']"
     xpath_event = '//*[starts-with(@id, "ep-")]'
 
-    for i in range(1,1):
+    for i in range(1,iteration):
         scroll_to_bottom(local_webdriver)
     
     # scroll_to_bottom(local_webdriver)
@@ -202,112 +219,28 @@ def Site_Extract_Cal_Event(local_webdriver: webdriver, url_site: str):
         try:
             run_attendee_number = element.find_element("xpath",xpath_attendee_number)
             print ("Attendee Number: " + run_attendee_number.text)
+            run_attendee_number_text= run_attendee_number.text
         except NoSuchElementException:
+            run_attendee_number_text= "0"
             print ("Attendee Number: None")
-        
+
+        run_organizer = Site_Extract_Event_Details(local_event_webdriver, run_meetup_url_link_text) 
+
+        # run_organizer = "BKK RUNNERS"
+
         element_index = element_index +1
 
+        # Create a new record to add
+        new_record = {'event_site':BKRM_SITE,
+                    'event_date': run_time.text,
+                    'event_title': run_title.text,
+                    'event_organizer': run_organizer,
+                    'event_attendee_number': run_attendee_number_text,
+                    'event_url': run_meetup_url_link_text}
 
-    # scroll_to_bottom(local_webdriver)
-
-    # xpath_job = "//div[@class='z1s6m00 _1hbhsw67i _1hbhsw66e _1hbhsw69q _1hbhsw68m _1hbhsw6n _1hbhsw65a _1hbhsw6ga _1hbhsw6fy']"
-
-    # div_elements = local_webdriver.find_elements("xpath",xpath_job)                                                                                                                        
-
-    # for element in div_elements: 
-
-    #     logger.debug('JDB: Number ['+str(i) + "]")
-
-    #     # JOB URL
-
-    #     job_url= element.find_element("xpath",".//a[@rel='nofollow noopener noreferrer']")   
-    #     job_url_text = job_url.get_attribute("href")
-    #     parsed_url = urlparse(job_url_text)
-
-    #     # Access different components of the URL
-    #     scheme = parsed_url.scheme
-    #     netloc = parsed_url.netloc
-    #     path = parsed_url.path
-    #     query = parsed_url.query
-    #     fragment = parsed_url.fragment
-
-    #     # Parse query string into a dictionary
-    #     query_params = parse_qs(parsed_url.query)
-    #     # print("Query Parameters:", query_params)
-
-    #     # Modify and rebuild the URL
-    #     # modified_url = urlunparse(("https", "www.updated-example.com", "/new-path", "", "param1=new_value&param3=new_param", ""))
-    #     modified_url = urlunparse((scheme, netloc, path, "", "",""))
-    #     job_url_text = modified_url
-
-    #     job_Id = query_params['jobId']
-    #     job_id_text = job_Id[0]
-
-    #     logger.debug('JDB: URL ['+str(i)+"] : "+ job_url_text) 
-        
-    #     # JOB TITLE
-
-    #     title_element = element.find_element("xpath",".//div[@class='z1s6m00 im1gct0 im1gct4 im1gct2']/.//span[@class='z1s6m00']")                                                                                                                        
-    #     title_element_text = title_element.text
-    #     logger.debug('JDB: Title ['+str(i)+"] : "+ title_element_text)  
-
-    #     # JOB COMPANY
-
-    #     try:
-    #         company_element = element.find_element("xpath",".//span[@class='z1s6m00 bev08l1 _1hbhsw64y _1hbhsw60 _1hbhsw6r']/.//a[@data-automation='jobCardCompanyLink']")                                                                                                                         
-    #         company_element_text = company_element.text
-    #     except NoSuchElementException:  #spelling error making this code not work as expected
-    #         company_element_text = "Company Info Not provided"
-    #         pass
-
-
-    #     logger.debug('JDB: Company ['+str(i)+"] : "+ company_element_text)  
-
-    #     # JOB POST DATE
-
-    #     # xpath_job_posted_date = ".//span[@class='z1s6m00 _1hbhsw64y y44q7i0 y44q7i1 y44q7i22 y44q7ihi']"
-    #     xpath_job_posted_date = ".//time[@class='z1s6m00 _1hbhsw64y']"
-    #     job_posted_date_element = element.find_element("xpath",xpath_job_posted_date)                                                                                                                        
-    #     # job_posted_date_element_text = job_posted_date_element.text
-    #     job_posted_date_element_text = job_posted_date_element.get_attribute("datetime")
-    #     job_posted_date_element_text = job_posted_date_element_text[0:10]
-    #     logger.debug('JDB: Date ['+str(i)+"] : "+ job_posted_date_element_text)  
-
-    #     # JOB LOCATION
-
-    #     # xpath_job_location = ".//span[@class='z1s6m00 bev08l1 _1hbhsw64y _1hbhsw60 _1hbhsw6r']"
-    #     xpath_job_location = ".//a[@data-automation='jobCardLocationLink']"
-    #     job_location_element = element.find_element("xpath",xpath_job_location)                                                                                                                        
-    #     job_location_element_text = job_location_element.text
-    #     logger.debug('JDB: Location ['+str(i)+"] : "+ job_location_element_text)  
-
-    #     # Job Description Summary
-    #     #jobList > div.z1s6m00.iw87102 > div:nth-child(2) > div > div:nth-child(2) > div > div > article > div > div > div.z1s6m00._1hbhsw67i._1hbhsw66e._1hbhsw69q._1hbhsw68m._1hbhsw6n._1hbhsw65a._1hbhsw6ga._1hbhsw6fy > div:nth-child(1) > div.z1s6m00._1hbhsw6ba._1hbhsw64y > ul > li:nth-child(1) > div > div.z1s6m00._1hbhsw6r._1hbhsw6p._1hbhsw6a2 > span
-        
-    #     xpath_job_description_box = ".//div[@data-automation='job-card-selling-points']"
-    #     xpath_job_description = ".//span[@class='z1s6m00 _1hbhsw64y y44q7i0 y44q7i1 y44q7i21 _1d0g9qk4 y44q7i7']"
-        
-    #     job_description_list = element.find_element("xpath",xpath_job_description_box)
-
-    #     job_description_elements = job_description_list.find_elements("xpath",xpath_job_description)                                                                                                                        
-
-    #     for job_description_element in job_description_elements:
-    #         job_description_element_text = job_description_element.text
-    #         logger.debug('JDB: Description ['+str(i)+"] : "+ job_description_element_text)  
-
-    #     # Create a new record to add
-    #     new_record = {'job_site':BKRM_SITE,
-    #                 'job_id': job_id_text,
-    #                 'job_title': title_element_text,
-    #                 'job_company_name': company_element_text,
-    #                 'job_location': job_location_element_text,
-    #                 'job_date_posted': job_posted_date_element_text,
-    #                 'job_url': job_url_text}
-
-    #     # Append the new record to the DataFrame
-    #     df = df.append(new_record, ignore_index=True)
-    #     logger.debug('JDB Adding : ' + title_element_text)
-    #     i += 1
+        # Append the new record to the DataFrame
+        df = df.append(new_record, ignore_index=True)
+        logger.debug('Adding Event: ' + run_time.text + " / " + run_title.text)
 
 
 
@@ -330,15 +263,30 @@ def main():
     
     Username, Password = Site_Credentials(BKRM_CREDENTIALS_FILE)
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install())) 
+    driver_main = webdriver.Chrome(service=Service(ChromeDriverManager().install())) 
+    driver_second = webdriver.Chrome(service=Service(ChromeDriverManager().install())) 
 
     url_past = "https://www.meetup.com/bangkok-runners/events/?type=past" 
-    Site_login(driver, BKRM_LOGIN_PAGE,Username,Password)
+    Site_login(driver_main, BKRM_LOGIN_PAGE,Username,Password)
+    Site_login(driver_second, BKRM_LOGIN_PAGE,Username,Password)
 
-    driver.get(url_past)
+    driver_main.get(url_past)
     # scroll_to_bottom(driver)
 
-    Site_Extract_Cal_Event(driver,url_past)
+    # EVENT_URL_TEST = "https://www.meetup.com/Bangkok-Runners/events/298203992/"
+
+    # Site_Extract_Event_Details(driver, EVENT_URL_TEST)
+
+    # EVENT_URL_TEST = "https://www.meetup.com/bangkok-runners/events/296007056/"
+
+    # Site_Extract_Event_Details(driver, EVENT_URL_TEST)
+
+    iteration = 10
+
+    Site_Extract_Cal_Event(driver_main,driver_second, url_past, iteration)
+
+
+
     # scroll_to_bottom(driver)
     # scroll_to_bottom(driver)
     # scroll_to_bottom(driver)

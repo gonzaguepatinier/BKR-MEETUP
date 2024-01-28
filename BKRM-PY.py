@@ -157,16 +157,58 @@ def Site_Extract_Cal_Event(local_webdriver: webdriver, url_site: str):
     # xpath_event = "//div[@id='ep-*']"
     xpath_event = '//*[starts-with(@id, "ep-")]'
 
+    for i in range(1,1):
+        scroll_to_bottom(local_webdriver)
+    
+    # scroll_to_bottom(local_webdriver)
+    
     div_elements = local_webdriver.find_elements("xpath",xpath_event)                                                                                                                        
+
+    element_index = 1
 
     for element in div_elements: 
 
         # logger.debug('JDB: Number ['+str(i) + "]")
-        print (element.text)
+        element_index_text = "{:02d}".format(element_index)
+        print("ELEMENT [" + element_index_text + "] : ")
+        # print (element.text)
+
+        all_attributes = element.get_property("attributes")
+
+        # Iterate through the dictionary and print each attribute and its value
+        for attribute in all_attributes:
+            attribute_name = attribute["name"]
+            attribute_value = element.get_attribute(attribute_name)
+            print(f"{attribute_name}: {attribute_value}")
+
+        xpath_time = ".//time"
+        run_time = element.find_element("xpath",xpath_time) 
+        print ("Time: " + run_time.text)
+
+        xpath_meetup_url_link = ".//a[@class='flex h-full flex-col justify-between space-y-5 outline-offset-8 hover:no-underline']"
+        run_meetup_url_link = element.find_element("xpath",xpath_meetup_url_link)
+        run_meetup_url_link_text = run_meetup_url_link.get_attribute("href")
+        print ("Meetup url link: " + run_meetup_url_link_text)
 
 
-    scroll_to_bottom(local_webdriver)
-    scroll_to_bottom(local_webdriver)
+        # xpath_title = ".//span[starts-with(@class, 'ds-font-title-3']"
+        xpath_title = './/span[@class="ds-font-title-3 block break-words leading-7 utils_cardTitle__lbnC_ text-gray6"]'
+        run_title = element.find_element("xpath",xpath_title)
+        print ("Title: " + run_title.text)
+
+        
+
+        xpath_attendee_number = ".//span[@class='hidden sm:inline']"
+        try:
+            run_attendee_number = element.find_element("xpath",xpath_attendee_number)
+            print ("Attendee Number: " + run_attendee_number.text)
+        except NoSuchElementException:
+            print ("Attendee Number: None")
+        
+        element_index = element_index +1
+
+
+    # scroll_to_bottom(local_webdriver)
 
     # xpath_job = "//div[@class='z1s6m00 _1hbhsw67i _1hbhsw66e _1hbhsw69q _1hbhsw68m _1hbhsw6n _1hbhsw65a _1hbhsw6ga _1hbhsw6fy']"
 
@@ -294,9 +336,13 @@ def main():
     Site_login(driver, BKRM_LOGIN_PAGE,Username,Password)
 
     driver.get(url_past)
+    # scroll_to_bottom(driver)
 
     Site_Extract_Cal_Event(driver,url_past)
-    scroll_to_bottom(driver)
+    # scroll_to_bottom(driver)
+    # scroll_to_bottom(driver)
+    # scroll_to_bottom(driver)
+    # Site_Extract_Cal_Event(driver,url_past)
 
     # driver.get("https://th.jobsdb.com/th/en/Search/FindJobs") 
     # driver.get("https://th.jobsdb.com/th/search-jobs/devops/1") o

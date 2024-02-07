@@ -9,12 +9,12 @@
 # - store data in database sqlite
 # - List all job related (recurse until last pages)
 # - Stored in Dataframe / XLS / CSV or JSON File
-# - Extract 
+# - Extract
 
-from selenium import webdriver 
-from selenium.webdriver.chrome.service import Service 
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import NoSuchElementException
-from webdriver_manager.chrome import ChromeDriverManager 
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.remote.webelement import WebElement
@@ -88,15 +88,16 @@ def scroll_to_bottom(driver):
 def Site_Credentials(site_credential_file: str):
 
     # Opening JSON file
+    Username = ''
+    Password = ''
+    logger.debug('Site: Fetching Credentials')
 
-    logger.debug('Site: Fetching Credentials') 
-   
     f = open(site_credential_file)
- 
-    # returns JSON object as 
+
+    # returns JSON object as
     # a dictionary
     data = json.load(f)
- 
+
     # Iterating through the json
     # list
     index=0
@@ -104,8 +105,8 @@ def Site_Credentials(site_credential_file: str):
         Username = (i['username'])
         Password = (i['password'])
 
-    logger.debug('Site: Username: ' + Username)
-    logger.debug('Site: Password: '+ Password)
+    logger.debug(f'Site: Username: {Username}')
+    logger.debug(f'Site: Password: {Password}')
 
     # Closing file
     f.close()
@@ -114,24 +115,24 @@ def Site_Credentials(site_credential_file: str):
 def Site_login(local_webdriver: webdriver, site_login_page: str, Username: str, Password: str):
 
     logger.debug('Site: Login Page')
-    local_webdriver.get(site_login_page)                                                                                              
-    
+    local_webdriver.get(site_login_page)
+
     logger.debug('Site: Insert Username')
-    
+
     xpath_username = "email" # id
 
-    username = local_webdriver.find_element("id", xpath_username )                                                                                              
-    username.send_keys(Username)                                                                                             
+    username = local_webdriver.find_element("id", xpath_username )
+    username.send_keys(Username)
 
     logger.debug('Site: Insert Password')
 
     xpath_password = "current-password" # id
-    pword = local_webdriver.find_element("id",xpath_password)                                                                                                  
-    pword.send_keys(Password)                                                                                                                   
+    pword = local_webdriver.find_element("id",xpath_password)
+    pword.send_keys(Password)
 
     logger.debug('Site: Click Submit')
     xpath_button = "submitButton" # id
-    local_webdriver.find_element("name",xpath_button).click()                                                                    
+    local_webdriver.find_element("name",xpath_button).click()
 
 
     # End of Function
@@ -140,13 +141,13 @@ def Site_login(local_webdriver: webdriver, site_login_page: str, Username: str, 
 def Site_Extract_Event_Details(local_webdriver: webdriver, url_event: str) -> str:
 
     global df
-    
+
     local_webdriver.get(url_event)
-    
+
     logger.debug('BKRM: Extract Data from event')
 
     xpath_organizer = "//a[@data-event-label='hosted-by']"
-    run_organizer_element= local_webdriver.find_element("xpath",xpath_organizer) 
+    run_organizer_element= local_webdriver.find_element("xpath",xpath_organizer)
 
     run_organizer_intermediate= run_organizer_element.get_attribute("aria-label")
     print(run_organizer_intermediate)
@@ -156,9 +157,9 @@ def Site_Extract_Event_Details(local_webdriver: webdriver, url_event: str) -> st
     else:
        run_organizer_text = "No Organizer"
 
-    print ("Organizer: " + run_organizer_text)
+    print (f"Organizer: {run_organizer_text}")
 
-    logger.debug('Event Organizer: ' + run_organizer_text)
+    logger.debug(f'Event Organizer: {run_organizer_text}')
 
     return (run_organizer_text)
 
@@ -174,35 +175,35 @@ def print_element_attributes(element: WebElement):
 def Site_Extract_Cal_Event(local_webdriver: webdriver, local_event_webdriver: webdriver, url_site: str, iteration: int):
 
     global df
-    
+
     local_webdriver.get(url_site)
-    
+
     logger.debug('BKRM: Extract Data from current page')
     logger.debug('BKRM: Extract URLs')
 
     # Sroll the infinite loop a few times
 
     for index in range(1,iteration):
-        logger.debug('BKRM: scrolling [' + str(index) + ']')
+        logger.debug(f'BKRM: scrolling [{str(index)}]')
         scroll_to_bottom(local_webdriver)
 
     # Search for WebElement for each event
 
-    xpath_event = '//*[starts-with(@id, "ep-")]' 
-    div_elements = local_webdriver.find_elements("xpath",xpath_event)                                                                                                                        
+    xpath_event = '//*[starts-with(@id, "ep-")]'
+    div_elements = local_webdriver.find_elements("xpath",xpath_event)
 
     element_index = 1
 
-    for element in div_elements: 
+    for element in div_elements:
 
         element_index_text = "{:02d}".format(element_index)
-        logger.debug("ELEMENT [" + element_index_text + "] : ")
+        logger.debug(f"ELEMENT [{element_index_text}] : ")
 
         # Search for time of event
 
         xpath_time = ".//time"
-        run_time = element.find_element("xpath",xpath_time) 
-        logger.debug("BKRM: " + "Time: " + run_time.text)
+        run_time = element.find_element("xpath",xpath_time)
+        logger.debug(f"BKRM: Time: {run_time.text}")
 
         # Search for URL of full event description
         # Used to extract organiser
@@ -210,14 +211,14 @@ def Site_Extract_Cal_Event(local_webdriver: webdriver, local_event_webdriver: we
         xpath_meetup_url_link = ".//a[@class='flex h-full flex-col justify-between space-y-5 outline-offset-8 hover:no-underline']"
         run_meetup_url_link = element.find_element("xpath",xpath_meetup_url_link)
         run_meetup_url_link_text = run_meetup_url_link.get_attribute("href")
-        logger.debug("BKRM: " + "Meetup url link: " + run_meetup_url_link_text)
+        logger.debug(f"BKRM: Meetup url link: {run_meetup_url_link_text}")
 
         # Search for Event Title
 
         xpath_title = './/span[@class="ds-font-title-3 block break-words leading-7 utils_cardTitle__lbnC_ text-gray6"]'
         run_title = element.find_element("xpath",xpath_title)
-        logger.debug("BKRM: " + "Title: " + run_title.text)
-        
+        logger.debug(f"BKRM: Title: {run_title.text}")
+
         # Search for attendee number
         # in some event, no attendee is written
 
@@ -226,15 +227,15 @@ def Site_Extract_Cal_Event(local_webdriver: webdriver, local_event_webdriver: we
             run_attendee_number = element.find_element("xpath",xpath_attendee_number)
             run_attendee_number_text_temp= run_attendee_number.text
             an_text = run_attendee_number_text_temp.split()
-            run_attendee_number_text = an_text[0] 
-            logger.debug("BKRM: " + "Attendee Number: " + run_attendee_number.text)
+            run_attendee_number_text = an_text[0]
+            logger.debug(f"BKRM: Attendee Number: {run_attendee_number.text}")
 
         except NoSuchElementException:
             run_attendee_number_text= "0"
-            
+
         # Search for organizer name from details event description
 
-        run_organizer = Site_Extract_Event_Details(local_event_webdriver, run_meetup_url_link_text) 
+        run_organizer = Site_Extract_Event_Details(local_event_webdriver, run_meetup_url_link_text)
 
         # run_organizer = "BKK RUNNERS"
 
@@ -250,27 +251,27 @@ def Site_Extract_Cal_Event(local_webdriver: webdriver, local_event_webdriver: we
 
         # Append the new record to the DataFrame
         df = df.append(new_record, ignore_index=True)
-        logger.debug('Adding Event: ' + run_time.text + " / " + run_title.text)
+        logger.debug(f'Adding Event: {run_time.text} / {run_title.text}')
 
 
 
 def main():
 
-    # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install())) 
-    
+    # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+
     # Clear Terminal Console
 
-    os.system('clear') 
+    os.system('clear')
     os.chdir(BKRM_HOME_DIR)
-    os.system('pwd') 
+    os.system('pwd')
 
- 
+
 
     Init_Logger(BKRM_LOGGER, BKRM_LOGGER_FILE)
 
     logger.debug('BKRM: -----')
     logger.debug('BKRM: Start')
-    
+
     Username, Password = Site_Credentials(BKRM_CREDENTIALS_FILE)
 
     chrome_options = webdriver.ChromeOptions()
@@ -282,16 +283,16 @@ def main():
     # Specify the path to the ChromeDriver executable using ChromeDriverManager
     # driver = webdriver.Chrome(service=webdriver.ChromeService(executable_path=ChromeDriverManager().install()), options=chrome_options)
 
-    driver_main = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=chrome_options) 
-    driver_second = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=chrome_options) 
+    driver_main = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=chrome_options)
+    driver_second = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=chrome_options)
 
-    url_past = "https://www.meetup.com/bangkok-runners/events/?type=past" 
+    url_past = "https://www.meetup.com/bangkok-runners/events/?type=past"
     Site_login(driver_main, BKRM_LOGIN_PAGE,Username,Password)
     Site_login(driver_second, BKRM_LOGIN_PAGE,Username,Password)
 
     driver_main.get(url_past)
 
-    iteration = 50
+    iteration = 2
 
     Site_Extract_Cal_Event(driver_main,driver_second, url_past, iteration)
 
@@ -305,12 +306,12 @@ def main():
     conn = sqlite3.connect(BKRM_DB)
 
     df.to_sql(BKRM_TABLE_NAME, conn, if_exists='append', index=False)
-    pd.read_sql('select * from ' + BKRM_TABLE_NAME, conn)
+    pd.read_sql(f'select * from {BKRM_TABLE_NAME}', conn)
 
     logger.debug('BKRM: Completed')
     logger.debug('BKRM: -----')
     logger.debug('BKRM: END')
 
-    
+
 if __name__ == "__main__":
     main()

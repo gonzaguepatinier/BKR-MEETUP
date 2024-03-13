@@ -105,63 +105,75 @@ def Site_Credentials(site_credential_file: str):
         Username = (i['username'])
         Password = (i['password'])
 
-    logger.debug(f'Site: Username: {Username}')
-    logger.debug(f'Site: Password: {Password}')
+    # logger.debug(f'Site: Username: {Username}')
+    # logger.debug(f'Site: Password: {Password}')
 
     # Closing file
     f.close()
     return Username, Password
 
 def Site_login(local_webdriver: webdriver, site_login_page: str, Username: str, Password: str):
+    def enter_username():
+        xpath_username = "email" # id
+        username = local_webdriver.find_element("id", xpath_username )
+        username.send_keys(Username)
 
+    def enter_password():
+        xpath_password = "current-password" # id
+        pword = local_webdriver.find_element("id",xpath_password)
+        pword.send_keys(Password)
+
+    def submit_login_form():
+        xpath_button = "submitButton" # id
+        local_webdriver.find_element("name",xpath_button).click()
+
+        
     logger.debug('Site: Login Page')
     local_webdriver.get(site_login_page)
 
     logger.debug('Site: Insert Username')
-
-    xpath_username = "email" # id
-
-    username = local_webdriver.find_element("id", xpath_username )
-    username.send_keys(Username)
+    enter_username()
 
     logger.debug('Site: Insert Password')
-
-    xpath_password = "current-password" # id
-    pword = local_webdriver.find_element("id",xpath_password)
-    pword.send_keys(Password)
-
-    logger.debug('Site: Click Submit')
-    xpath_button = "submitButton" # id
-    local_webdriver.find_element("name",xpath_button).click()
-
+    enter_password()
+    
+    logger.debug('Site: Click Submit') 
+    submit_login_form()
 
     # End of Function
 
 
-def Site_Extract_Event_Details(local_webdriver: webdriver, url_event: str) -> str:
+def Site_Extract_Event_Details(local_detail_webdriver: webdriver, url_event: str) -> str:
+
+
+    def extract_organizer() -> str:
+
+        id_organizer = "hosted-by"
+        run_organizer_element= local_detail_webdriver.find_element("id",id_organizer)
+
+        run_organizer_intermediate= run_organizer_element.get_attribute("aria-label")
+
+        if run_organizer_intermediate is not None:
+            run_organizer_text = run_organizer_intermediate[10:]
+        else:
+            run_organizer_text = "No Organizer"
+
+        return(run_organizer_text)   
+
 
     global df
 
-    local_webdriver.get(url_event)
+    
 
     logger.debug('BKRM: Extract Data from event')
     logger.debug(f'BKRM: URL {url_event}')
+    local_detail_webdriver.get(url_event)
 
     # xpath_organizer = "//a[@data-event-label='hosted-by']"
     # xpath_organizer = "//a[@id='hosted-by']"
     # run_organizer_element= local_webdriver.find_element("xpath",xpath_organizer)
-    id_organizer = "hosted-by"
-    run_organizer_element= local_webdriver.find_element("id",id_organizer)
-
-    run_organizer_intermediate= run_organizer_element.get_attribute("aria-label")
-    print(run_organizer_intermediate)
-
-    if run_organizer_intermediate is not None:
-        run_organizer_text = run_organizer_intermediate[10:]
-    else:
-       run_organizer_text = "No Organizer"
-
-    print (f"Organizer: {run_organizer_text}")
+    
+    run_organizer_text = extract_organizer()
 
     logger.debug(f'Event Organizer: {run_organizer_text}')
 
@@ -178,6 +190,27 @@ def print_element_attributes(element: WebElement):
 
 def Site_Extract_Cal_Event(local_webdriver: webdriver, local_event_webdriver: webdriver, url_site: str, iteration: int):
 
+    def search_event_elements():
+        xpath_event = '//*[starts-with(@id, "ep-")]'
+        div_elements = local_webdriver.find_elements("xpath",xpath_event)
+        return(div_elements)
+
+    def extract_event_time() -> str:
+        xpath_time = ".//time"
+        run_time = element.find_element("xpath",xpath_time)
+        return(run_time.text)
+
+    def extract_event_url() -> str:
+        xpath_meetup_url_link = ".//a[@class='flex h-full flex-col justify-between space-y-5 outline-offset-8 hover:no-underline']"
+        run_meetup_url_link = element.find_element("xpath",xpath_meetup_url_link)
+        run_meetup_url_link_text = run_meetup_url_link.get_attribute("href")
+        return(run_meetup_url_link_text)
+
+    def extract_event_title() -> str :
+        xpath_title = './/span[@class="ds-font-title-3 block break-words leading-7 utils_cardTitle__lbnC_ text-gray6"]'
+        run_title = element.find_element("xpath",xpath_title)
+        return (run_title.text)
+
     global df
 
     local_webdriver.get(url_site)
@@ -193,8 +226,7 @@ def Site_Extract_Cal_Event(local_webdriver: webdriver, local_event_webdriver: we
 
     # Search for WebElement for each event
 
-    xpath_event = '//*[starts-with(@id, "ep-")]'
-    div_elements = local_webdriver.find_elements("xpath",xpath_event)
+    div_elements = search_event_elements()
 
     element_index = 1
 
@@ -205,23 +237,19 @@ def Site_Extract_Cal_Event(local_webdriver: webdriver, local_event_webdriver: we
 
         # Search for time of event
 
-        xpath_time = ".//time"
-        run_time = element.find_element("xpath",xpath_time)
-        logger.debug(f"BKRM: Time: {run_time.text}")
+        run_time_text = extract_event_time()
+        logger.debug(f"BKRM: Time: {run_time_text}")
 
         # Search for URL of full event description
         # Used to extract organiser
 
-        xpath_meetup_url_link = ".//a[@class='flex h-full flex-col justify-between space-y-5 outline-offset-8 hover:no-underline']"
-        run_meetup_url_link = element.find_element("xpath",xpath_meetup_url_link)
-        run_meetup_url_link_text = run_meetup_url_link.get_attribute("href")
+        run_meetup_url_link_text = extract_event_url() 
         logger.debug(f"BKRM: Meetup url link: {run_meetup_url_link_text}")
 
         # Search for Event Title
 
-        xpath_title = './/span[@class="ds-font-title-3 block break-words leading-7 utils_cardTitle__lbnC_ text-gray6"]'
-        run_title = element.find_element("xpath",xpath_title)
-        logger.debug(f"BKRM: Title: {run_title.text}")
+        run_title_text = extract_event_title()
+        logger.debug(f"BKRM: Title: {run_title_text}")
 
         # Search for attendee number
         # in some event, no attendee is written
@@ -247,19 +275,55 @@ def Site_Extract_Cal_Event(local_webdriver: webdriver, local_event_webdriver: we
 
         # Create a new record to add
         new_record = {'event_site':BKRM_SITE,
-                    'event_date': run_time.text,
-                    'event_title': run_title.text,
+                    'event_date': run_time_text,
+                    'event_title': run_title_text,
                     'event_organizer': run_organizer,
                     'event_attendee_number': run_attendee_number_text,
                     'event_url': run_meetup_url_link_text}
 
         # Append the new record to the DataFrame
         df = df.append(new_record, ignore_index=True)
-        logger.debug(f'Adding Event: {run_time.text} / {run_title.text}')
+        logger.debug(f'Adding Event: {run_time_text} / {run_title_text}')
 
 
 def Site_Extract_Cal_Event_Max(local_webdriver: webdriver, local_event_webdriver: webdriver, url_site: str, max_event_event: int):
 
+    def extract_event_time() -> str:
+        xpath_time = ".//time"
+        run_time = element.find_element("xpath",xpath_time)
+        return(run_time.text)
+
+    def extract_event_url() -> str:
+        xpath_meetup_url_link = ".//a[@class='flex h-full flex-col justify-between space-y-5 outline-offset-8 hover:no-underline']"
+        run_meetup_url_link = element.find_element("xpath",xpath_meetup_url_link)
+        run_meetup_url_link_text = run_meetup_url_link.get_attribute("href")
+        return(run_meetup_url_link_text)
+
+    def extract_event_title() -> str :
+        xpath_title = './/span[@class="ds-font-title-3 block break-words leading-7 utils_cardTitle__lbnC_ text-gray6"]'
+        run_title = element.find_element("xpath",xpath_title)
+        return (run_title.text)
+
+    def extract_event_attendee_number() -> str:
+        xpath_attendee_number = ".//span[@class='hidden sm:inline']"
+        try:
+            run_attendee_number = element.find_element("xpath",xpath_attendee_number)
+            run_attendee_number_text_temp= run_attendee_number.text
+            an_text = run_attendee_number_text_temp.split()
+            run_attendee_number_text = an_text[0]
+        except NoSuchElementException:
+            run_attendee_number_text= "0"
+        return(run_attendee_number_text)
+
+    def extract_event_list():
+        # xpath_event = '//*[starts-with(@id, "ep-")]'
+        # div_elements = local_webdriver.find_elements("xpath",xpath_event)
+
+        xpath_event = f'//*[starts-with(@id, "ep-")][position() >= {starting_position}]'
+        div_elements = local_webdriver.find_elements("xpath",xpath_event)
+
+        return(div_elements)
+    
     global df
 
     local_webdriver.get(url_site)
@@ -282,14 +346,7 @@ def Site_Extract_Cal_Event_Max(local_webdriver: webdriver, local_event_webdriver
     starting_position = 0
     element_index = 1
 
-    xpath_event = '//*[starts-with(@id, "ep-")]'
-    div_elements = local_webdriver.find_elements("xpath",xpath_event)
-
-    xpath_event = f'//*[starts-with(@id, "ep-")][position() >= {starting_position}]'
-    div_elements = local_webdriver.find_elements("xpath",xpath_event)
-
-    
-
+    div_elements = extract_event_list()
     for element in div_elements:
 
         element_index_text = "{:02d}".format(element_index)
@@ -297,37 +354,26 @@ def Site_Extract_Cal_Event_Max(local_webdriver: webdriver, local_event_webdriver
 
         # Search for time of event
 
-        xpath_time = ".//time"
-        run_time = element.find_element("xpath",xpath_time)
-        logger.debug(f"BKRM: Time: {run_time.text}")
+        run_time_text = extract_event_time()
+        logger.debug(f"BKRM: Time: {run_time_text}")
 
         # Search for URL of full event description
         # Used to extract organiser
-
-        xpath_meetup_url_link = ".//a[@class='flex h-full flex-col justify-between space-y-5 outline-offset-8 hover:no-underline']"
-        run_meetup_url_link = element.find_element("xpath",xpath_meetup_url_link)
-        run_meetup_url_link_text = run_meetup_url_link.get_attribute("href")
+  
+        run_meetup_url_link_text = extract_event_url
         logger.debug(f"BKRM: Meetup url link: {run_meetup_url_link_text}")
 
         # Search for Event Title
 
-        xpath_title = './/span[@class="ds-font-title-3 block break-words leading-7 utils_cardTitle__lbnC_ text-gray6"]'
-        run_title = element.find_element("xpath",xpath_title)
-        logger.debug(f"BKRM: Title: {run_title.text}")
+        run_title_text = extract_event_title
+        logger.debug(f"BKRM: Title: {run_title_text}")
 
         # Search for attendee number
         # in some event, no attendee is written
 
-        xpath_attendee_number = ".//span[@class='hidden sm:inline']"
-        try:
-            run_attendee_number = element.find_element("xpath",xpath_attendee_number)
-            run_attendee_number_text_temp= run_attendee_number.text
-            an_text = run_attendee_number_text_temp.split()
-            run_attendee_number_text = an_text[0]
-            logger.debug(f"BKRM: Attendee Number: {run_attendee_number.text}")
+        run_attendee_number_text = extract_event_attendee_number
 
-        except NoSuchElementException:
-            run_attendee_number_text= "0"
+        logger.debug(f"BKRM: Attendee Number: {run_attendee_number_text}")
 
         # Search for organizer name from details event description
 
@@ -340,15 +386,15 @@ def Site_Extract_Cal_Event_Max(local_webdriver: webdriver, local_event_webdriver
 
         # Create a new record to add
         new_record = {'event_site':BKRM_SITE,
-                    'event_date': run_time.text,
-                    'event_title': run_title.text,
+                    'event_date': run_time_text,
+                    'event_title': run_title_text,
                     'event_organizer': run_organizer,
                     'event_attendee_number': run_attendee_number_text,
                     'event_url': run_meetup_url_link_text}
 
         # Append the new record to the DataFrame
         df = df.append(new_record, ignore_index=True)
-        logger.debug(f'Adding Event: {run_time.text} / {run_title.text}')
+        logger.debug(f'Adding Event: {run_time_text} / {run_title_text}')
 
 def main():
 
@@ -390,6 +436,7 @@ def main():
     # iteration = 2
     max_element = 5
     # Site_Extract_Cal_Event(driver_main,driver_second, url_past, iteration)
+
     Site_Extract_Cal_Event_Max(driver_main,driver_second, url_past,max_element )
 
 

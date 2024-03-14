@@ -148,17 +148,18 @@ def Site_Extract_Event_Details(local_detail_webdriver: webdriver, url_event: str
 
     def extract_organizer() -> str:
 
-        id_organizer = "hosted-by"
-        run_organizer_element= local_detail_webdriver.find_element("id",id_organizer)
+        # id_organizer = "hosted-by"
+        xpath_organizer = "//a[@data-event-label='hosted-by']" # "hosted-by"
+        run_organizer_element= local_detail_webdriver.find_element("xpath",xpath_organizer)
 
         run_organizer_intermediate= run_organizer_element.get_attribute("aria-label")
 
         if run_organizer_intermediate is not None:
-            run_organizer_text = run_organizer_intermediate[10:]
+            my_run_organizer_text = run_organizer_intermediate[10:]
         else:
-            run_organizer_text = "No Organizer"
+            my_run_organizer_text = "No Organizer"
 
-        return(run_organizer_text)   
+        return(my_run_organizer_text)   
 
 
     global df
@@ -168,6 +169,9 @@ def Site_Extract_Event_Details(local_detail_webdriver: webdriver, url_event: str
     logger.debug('BKRM: Extract Data from event')
     logger.debug(f'BKRM: URL {url_event}')
     local_detail_webdriver.get(url_event)
+
+    with open("page_source.html", "w", encoding='utf-8') as f:
+        f.write(local_detail_webdriver.page_source)
 
     # xpath_organizer = "//a[@data-event-label='hosted-by']"
     # xpath_organizer = "//a[@id='hosted-by']"
@@ -290,19 +294,19 @@ def Site_Extract_Cal_Event_Max(local_webdriver: webdriver, local_event_webdriver
 
     def extract_event_time() -> str:
         xpath_time = ".//time"
-        run_time = element.find_element("xpath",xpath_time)
-        return(run_time.text)
+        my_run_time = element.find_element("xpath",xpath_time)
+        return(my_run_time.text)
 
     def extract_event_url() -> str:
         xpath_meetup_url_link = ".//a[@class='flex h-full flex-col justify-between space-y-5 outline-offset-8 hover:no-underline']"
         run_meetup_url_link = element.find_element("xpath",xpath_meetup_url_link)
-        run_meetup_url_link_text = run_meetup_url_link.get_attribute("href")
-        return(run_meetup_url_link_text)
+        my_run_meetup_url_link_text = run_meetup_url_link.get_attribute("href")
+        return(my_run_meetup_url_link_text)
 
     def extract_event_title() -> str :
         xpath_title = './/span[@class="ds-font-title-3 block break-words leading-7 utils_cardTitle__lbnC_ text-gray6"]'
-        run_title = element.find_element("xpath",xpath_title)
-        return (run_title.text)
+        my_run_title = element.find_element("xpath",xpath_title)
+        return (my_run_title.text)
 
     def extract_event_attendee_number() -> str:
         xpath_attendee_number = ".//span[@class='hidden sm:inline']"
@@ -310,10 +314,10 @@ def Site_Extract_Cal_Event_Max(local_webdriver: webdriver, local_event_webdriver
             run_attendee_number = element.find_element("xpath",xpath_attendee_number)
             run_attendee_number_text_temp= run_attendee_number.text
             an_text = run_attendee_number_text_temp.split()
-            run_attendee_number_text = an_text[0]
+            my_run_attendee_number_text = an_text[0]
         except NoSuchElementException:
-            run_attendee_number_text= "0"
-        return(run_attendee_number_text)
+            my_run_attendee_number_text= "0"
+        return(my_run_attendee_number_text)
 
     def extract_event_list():
         # xpath_event = '//*[starts-with(@id, "ep-")]'
@@ -360,18 +364,18 @@ def Site_Extract_Cal_Event_Max(local_webdriver: webdriver, local_event_webdriver
         # Search for URL of full event description
         # Used to extract organiser
   
-        run_meetup_url_link_text = extract_event_url
+        run_meetup_url_link_text = extract_event_url()
         logger.debug(f"BKRM: Meetup url link: {run_meetup_url_link_text}")
 
         # Search for Event Title
 
-        run_title_text = extract_event_title
+        run_title_text = extract_event_title()
         logger.debug(f"BKRM: Title: {run_title_text}")
 
         # Search for attendee number
         # in some event, no attendee is written
 
-        run_attendee_number_text = extract_event_attendee_number
+        run_attendee_number_text = extract_event_attendee_number()
 
         logger.debug(f"BKRM: Attendee Number: {run_attendee_number_text}")
 
@@ -412,14 +416,15 @@ def main():
 
     logger.debug('BKRM: -----')
     logger.debug('BKRM: Start')
+    logger.debug('BKRM: -----')
 
     Username, Password = Site_Credentials(BKRM_CREDENTIALS_FILE)
 
     chrome_options = webdriver.ChromeOptions()
 
     # Set options as needed
-    chrome_options.add_argument('--headless')  # Run Chrome in headless mode (without GUI)
-    chrome_options.add_argument('--disable-gpu')  # Disable GPU acceleration in headless mode
+    # chrome_options.add_argument('--headless')  # Run Chrome in headless mode (without GUI)
+    # chrome_options.add_argument('--disable-gpu')  # Disable GPU acceleration in headless mode
 
     # Specify the path to the ChromeDriver executable using ChromeDriverManager
     # driver = webdriver.Chrome(service=webdriver.ChromeService(executable_path=ChromeDriverManager().install()), options=chrome_options)
@@ -432,7 +437,8 @@ def main():
     Site_login(driver_second, BKRM_LOGIN_PAGE,Username,Password)
 
     driver_main.get(url_past)
-
+    logger.debug('Load Past Event')
+    time.sleep(5)
     # iteration = 2
     max_element = 5
     # Site_Extract_Cal_Event(driver_main,driver_second, url_past, iteration)

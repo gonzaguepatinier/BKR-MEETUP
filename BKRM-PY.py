@@ -25,6 +25,8 @@ import time
 import pandas as pd
 from urllib.parse import urlparse, urlencode, parse_qs, urlunparse
 import sqlite3
+from utils import init_logger, get_site_credentials
+from utils import logger
 
 BKRM_HOME_DIR = "/Users/gonzaguepatinier/Documents/GitHub/BKR-MEETUP/"
 BKRM_DB = BKRM_HOME_DIR + "./BKRM_data.db'"
@@ -45,87 +47,31 @@ df = pd.DataFrame(
                      'event_title',
                      'event_organizer',
                      'event_attendee_number',
-                     'event_url'] )
+                     'event_url'] 
+            )
 
-
-
-# Initialise Logging
-
-def Init_Logger(logger_name: str, logger_file_name):
-    global logger
-
-    logger = logging.getLogger(logger_name)
-    logger.setLevel(logging.DEBUG)
-
-    # Handler for console output
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
-
-    # Handler for file output
-    file_handler = logging.FileHandler(logger_file_name)
-    file_handler.setLevel(logging.DEBUG)
-
-    # Formatter for log messages
-    formatter = logging.Formatter('[%(asctime)s] %(levelname)-8s %(message)s')
-
-    # Add formatters to handlers
-    console_handler.setFormatter(formatter)
-    file_handler.setFormatter(formatter)
-
-    # Add handlers to logger
-    logger.addHandler(console_handler)
-    logger.addHandler(file_handler)
-
-
-
-# Load username/password from local file
 
 def scroll_to_bottom(driver):
     # Scroll to the bottom of the page using JavaScript
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     time.sleep(5)  # Adjust the sleep time as needed
 
-def Site_Credentials(site_credential_file: str):
 
-    # Opening JSON file
-    Username = ''
-    Password = ''
-    logger.debug('Site: Fetching Credentials')
 
-    f = open(site_credential_file)
-
-    # returns JSON object as
-    # a dictionary
-    data = json.load(f)
-
-    # Iterating through the json
-    # list
-    index=0
-    for i in data['user_credentials']:
-        Username = (i['username'])
-        Password = (i['password'])
-
-    # logger.debug(f'Site: Username: {Username}')
-    # logger.debug(f'Site: Password: {Password}')
-
-    # Closing file
-    f.close()
-    return Username, Password
-
-def Site_login(local_webdriver: webdriver, site_login_page: str, Username: str, Password: str):
+def login_to_site(local_webdriver: webdriver, site_login_page: str, username: str, password: str):
     def enter_username():
-        xpath_username = "email" # id
-        username = local_webdriver.find_element("id", xpath_username )
-        username.send_keys(Username)
+        ID_USERNAME = "email" # id
+        element_username = local_webdriver.find_element("id", ID_USERNAME )
+        element_username.send_keys(username)
 
     def enter_password():
-        xpath_password = "current-password" # id
-        pword = local_webdriver.find_element("id",xpath_password)
-        pword.send_keys(Password)
+        ID_PASSWORD = "current-password" # id
+        element_password = local_webdriver.find_element("id",ID_PASSWORD)
+        element_password.send_keys(password)
 
     def submit_login_form():
-        xpath_button = "submitButton" # id
-        local_webdriver.find_element("name",xpath_button).click()
+        NAME_BUTTON = "submitButton" # id
+        local_webdriver.find_element("name",NAME_BUTTON).click()
 
         
     logger.debug('Site: Login Page')
@@ -173,10 +119,6 @@ def Site_Extract_Event_Details(local_detail_webdriver: webdriver, url_event: str
     with open("page_source.html", "w", encoding='utf-8') as f:
         f.write(local_detail_webdriver.page_source)
 
-    # xpath_organizer = "//a[@data-event-label='hosted-by']"
-    # xpath_organizer = "//a[@id='hosted-by']"
-    # run_organizer_element= local_webdriver.find_element("xpath",xpath_organizer)
-    
     run_organizer_text = extract_organizer()
 
     logger.debug(f'Event Organizer: {run_organizer_text}')
@@ -200,15 +142,14 @@ def Site_Extract_Cal_Event(local_webdriver: webdriver, local_event_webdriver: we
         return(div_elements)
 
     def extract_event_time() -> str:
-        xpath_time = ".//time"
-        run_time = element.find_element("xpath",xpath_time)
+        XPATH_TIME= ".//time"
+        run_time = element.find_element("xpath",XPATH_TIME)
         return(run_time.text)
 
     def extract_event_url() -> str:
         xpath_meetup_url_link = ".//a[@class='flex h-full flex-col justify-between space-y-5 outline-offset-8 hover:no-underline']"
         run_meetup_url_link = element.find_element("xpath",xpath_meetup_url_link)
-        run_meetup_url_link_text = run_meetup_url_link.get_attribute("href")
-        return(run_meetup_url_link_text)
+        return(run_meetup_url_link.get_attribute("href"))
 
     def extract_event_title() -> str :
         xpath_title = './/span[@class="ds-font-title-3 block break-words leading-7 utils_cardTitle__lbnC_ text-gray6"]'
@@ -410,15 +351,13 @@ def main():
     os.chdir(BKRM_HOME_DIR)
     os.system('pwd')
 
-
-
-    Init_Logger(BKRM_LOGGER, BKRM_LOGGER_FILE)
+    init_logger(BKRM_LOGGER, BKRM_LOGGER_FILE)
 
     logger.debug('BKRM: -----')
     logger.debug('BKRM: Start')
     logger.debug('BKRM: -----')
 
-    Username, Password = Site_Credentials(BKRM_CREDENTIALS_FILE)
+    Username, Password = get_site_credentials(BKRM_CREDENTIALS_FILE)
 
     chrome_options = webdriver.ChromeOptions()
 
@@ -433,8 +372,8 @@ def main():
     driver_second = webdriver.Chrome(service=Service(ChromeDriverManager().install()),options=chrome_options)
 
     url_past = "https://www.meetup.com/bangkok-runners/events/?type=past"
-    Site_login(driver_main, BKRM_LOGIN_PAGE,Username,Password)
-    Site_login(driver_second, BKRM_LOGIN_PAGE,Username,Password)
+    login_to_site(driver_main, BKRM_LOGIN_PAGE,Username,Password)
+    login_to_site(driver_second, BKRM_LOGIN_PAGE,Username,Password)
 
     driver_main.get(url_past)
     logger.debug('Load Past Event')

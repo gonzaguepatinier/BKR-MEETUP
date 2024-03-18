@@ -6,7 +6,6 @@ global logger
 
 def init_logger(logger_name: str, logger_file_name):
 
-
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.DEBUG)
 
